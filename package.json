@@ -1,0 +1,14 @@
+{
+  "name": "natour",
+  "version": "1.0.0",
+  "description": "Learning express, mongoose",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Balogun Al-ameen",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

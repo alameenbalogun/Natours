@@ -18,7 +18,7 @@ const tours = JSON.parse(
 //   res.send('You can now post to this endpoint.');
 // });
 
-app.get('/api/v1/tours', (req, res) => {
+const getAllTours = (req, res) => {
   res.status(200).json({
     status: 'success',
     result: tours.length,
@@ -26,10 +26,29 @@ app.get('/api/v1/tours', (req, res) => {
       tours,
     },
   });
-});
+};
 
+const getTour = (req, res) => {
+  const id = req.params.id * 1;
+  const tour = tours.find((el) => el.id === id);
 
-app.post('/api/v1/tours', (req, res) => {
+  if (!tour > tours.length) {
+    res.status(404).json({
+      status: 'fail',
+      data: {
+        message: 'Invalid ID',
+      },
+    });
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour,
+    },
+  });
+};
+
+const createTour = (req, res) => {
   const newId = tours[tours.length - 1].id + 1;
   const newTour = Object.assign({ id: newId }, req.body);
 
@@ -50,7 +69,57 @@ app.post('/api/v1/tours', (req, res) => {
 
   //   console.log(newTour);
   //   console.log(req.body);
-});
+};
+
+const updateTour = (req, res) => {
+  if (req.params.id * 1 > tours.length) {
+    res.status(404).json({
+      status: 'fail',
+      data: {
+        message: 'Invalid ID',
+      },
+    });
+  }
+  res.status(200).json({
+    status: 'sucess',
+    data: {
+      message: 'File successfully updated',
+    },
+  });
+};
+
+const deleteTour = (req, res) => {
+  if (req.params.id * 1 > tours.length) {
+    res.status(404).json({
+      status: 'fail',
+      data: {
+        message: 'Invalid ID',
+      },
+    });
+  }
+  res.status(204).json({
+    status: 'sucess',
+    data: null,
+  });
+};
+
+{
+  /**
+  app.get('/api/v1/tours', getAllTours);
+  app.get('/api/v1/tours/:id', getTour);
+  app.post('/api/v1/tours', createTour);
+  app.patch('/api/v1/tours/:id', updateTour);
+  app.delete('/api/v1/tours/:id', deleteTour);
+  */
+}
+
+//A better way for routing is:
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour);
 
 //PORT
 const port = 8000;

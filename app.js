@@ -1,10 +1,10 @@
 const fs = require('fs');
 const express = require('express');
-const morgan = require("morgan")
+const morgan = require('morgan');
 
 const app = express();
 
-app.use(morgan("dev"))
+app.use(morgan('dev'));
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -119,6 +119,37 @@ const deleteTour = (req, res) => {
   });
 };
 
+const getAllUsers = (req, res) => {
+  res.status(500).json({
+    message: 'error',
+    data: 'Route has not been developed',
+  });
+};
+const createUser = (req, res) => {
+  res.status(500).json({
+    message: 'error',
+    data: 'Route has not been developed',
+  });
+};
+const getUser = (req, res) => {
+  res.status(500).json({
+    message: 'error',
+    data: 'Route has not been developed',
+  });
+};
+const updateUser = (req, res) => {
+  res.status(500).json({
+    message: 'error',
+    data: 'Route has not been developed',
+  });
+};
+const deleteUser = (req, res) => {
+  res.status(500).json({
+    message: 'error',
+    data: 'Route has not been developed',
+  });
+};
+
 {
   /**
   app.get('/api/v1/tours', getAllTours);
@@ -130,12 +161,17 @@ const deleteTour = (req, res) => {
 }
 
 //A better way for routing is:
-app.route('/api/v1/tours').get(getAllTours).post(createTour);
-app
-  .route('/api/v1/tours/:id')
-  .get(getTour)
-  .patch(updateTour)
-  .delete(deleteTour);
+const tourRouter = express.Router();
+const userRouter = express.Router();
+tourRouter.route('/').get(getAllTours).post(createTour);
+tourRouter.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
+
+//users routes
+userRouter.route('/').get(getAllUsers).post(createUser);
+userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
 
 //PORT
 const port = 8000;

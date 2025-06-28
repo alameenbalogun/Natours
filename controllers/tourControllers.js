@@ -86,7 +86,7 @@ exports.getAllTours = async (req, res) => {
 
     // Clone req.query
     const queryObj = { ...req.query };
-    const excludedFields = ['sort', 'page', 'limit'];
+    const excludedFields = ['sort', 'page', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
     // Advanced filtering (e.g., price[gt]=2000 → { price: { $gt: 2000 } })
@@ -117,7 +117,25 @@ exports.getAllTours = async (req, res) => {
     });
 
     // Execute the query
-    const query = Tour.find(mongoQuery);
+    let query = Tour.find(mongoQuery);
+
+    //sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      console.log(sortBy);
+      query = query.sort(sortBy);
+    }
+
+    //limiting fields
+    if (req.query.fields) {
+      console.log(req.query.fields);
+      const fields = req.query.fields.split(',').join(' ');
+      console.log(fields);
+
+      query = query.select(fields);
+    } else {
+      query = query.select('-__v');
+    }
 
     const tours = await query;
 

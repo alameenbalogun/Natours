@@ -31,10 +31,96 @@ const Tour = require('./../models/tourModel');
 //   next();
 // };
 
+// exports.getAllTours = async (req, res) => {
+//   try {
+//     console.log(req.query);
+
+//     //ways to implement query
+//     const queryObj = { ...req.query };
+//     console.log(queryObj);
+//     const excludedFields = ['sort', 'page', 'limit'];
+//     excludedFields.forEach((el) => delete queryObj[el]);
+//     // console.log(queryObj);
+
+//     let queryStr = JSON.stringify(queryObj);
+//     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+//     console.log(JSON.parse(queryStr));
+
+//     //1.
+//     // const tours = await Tour.find({
+//     //   difficulty: 'easy',
+//     //   duration: 5,
+//     // });
+
+//     const query = Tour.find(JSON.parse(queryStr));
+
+//     const tours = await query;
+
+//     //2.
+//     // const tours = await Tour.find()
+//     //   .where('difficulty')
+//     //   .equals('easy')
+//     //   .where('duration')
+//     //   .equals(5);
+
+//     // const tours = await Tour.find();
+//     res.status(200).json({
+//       status: 'success',
+//       requestedAt: req.requestTime,
+//       result: tours.length,
+//       data: {
+//         tours,
+//       },
+//     });
+//   } catch (err) {
+//     res.status(404).json({
+//       status: 'fail',
+//       message: err,
+//     });
+//   }
+// };
+
 exports.getAllTours = async (req, res) => {
   try {
-    console.log(req.requestTime);
-    const tours = await Tour.find();
+    console.log(req.query);
+
+    // Clone req.query
+    const queryObj = { ...req.query };
+    const excludedFields = ['sort', 'page', 'limit'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    // Advanced filtering (e.g., price[gt]=2000 → { price: { $gt: 2000 } })
+    let mongoQuery = {};
+    Object.keys(queryObj).forEach((key) => {
+      if (key.includes('[')) {
+        const [field, operator] = key.split('[');
+        const op = operator.replace(']', '');
+        if (!mongoQuery[field]) mongoQuery[field] = {};
+        mongoQuery[field][`$${op}`] = queryObj[key];
+      } else {
+        mongoQuery[key] = queryObj[key];
+      }
+    });
+
+    // Convert numeric values from strings to numbers
+    Object.keys(mongoQuery).forEach((key) => {
+      if (typeof mongoQuery[key] === 'object') {
+        Object.keys(mongoQuery[key]).forEach((opKey) => {
+          const val = mongoQuery[key][opKey];
+          mongoQuery[key][opKey] = isNaN(val) ? val : Number(val);
+        });
+      } else {
+        mongoQuery[key] = isNaN(mongoQuery[key])
+          ? mongoQuery[key]
+          : Number(mongoQuery[key]);
+      }
+    });
+
+    // Execute the query
+    const query = Tour.find(mongoQuery);
+
+    const tours = await query;
+
     res.status(200).json({
       status: 'success',
       requestedAt: req.requestTime,

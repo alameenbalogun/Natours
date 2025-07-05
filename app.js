@@ -3,6 +3,8 @@ const morgan = require('morgan');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const gloablErrorHandler = require('./controllers/errorController');
+const AppError = require('./utils/appError');
 
 const app = express();
 console.log(process.env.NODE_ENV);
@@ -53,6 +55,31 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+app.all('/{*any}', (req, res, next) => {
+  // const err = new Error(`Can't find ${req.originalUrl} on this server!`);
+  // err.statusCode = 404;
+  // err.status = 'fail';
+
+  // res.status(404).json({
+  //   status: 'fail',
+  //   message: `Can't find ${req.originalUrl} on this server!`,
+  // });
+
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+app.use(gloablErrorHandler);
+
+// app.all('*', (req, res, next) => {
+//   // Create error object
+//   const err = new Error(`Can't find ${req.originalUrl} on this server!`);
+//   err.status = 'fail';
+//   err.statusCode = 404;
+
+//   // Pass to error handling middleware
+//   next(err);
+// });
 
 //PORT
 

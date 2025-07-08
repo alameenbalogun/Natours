@@ -14,6 +14,12 @@ const handleDuplicateErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleValidationErrorDB = (err) => {
+  const errors = Object.values(err.errors).map((el) => el.message);
+  const message = `Invalid input data. ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
     status: err.status,
@@ -64,6 +70,7 @@ module.exports = (err, req, res, next) => {
   } else if (process.env.NODE_ENV === 'production') {
     // Important: Need to copy the name property explicitly
     let error = { ...err, name: err.name, message: err.message };
+    console.error(error);
 
     // Handle specific MongoDB errors
     if (error.name === 'CastError') {
@@ -73,6 +80,9 @@ module.exports = (err, req, res, next) => {
     if (error.code === 11000) {
       error = handleDuplicateErrorDB(error);
     }
+
+    if (error.name === 'ValidationError')
+      error = handleValidationErrorDB(error);
     // Add other error handlers here as needed...
 
     sendErrorProd(error, res);

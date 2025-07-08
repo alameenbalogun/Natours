@@ -11,7 +11,6 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       minLength: [10, 'A tour must be more than or equal 10'],
       maxLength: [40, 'A tour must be less than or equal 40'],
-      validate: [validator.isAlpha, 'Tour nmae must only be characters'],
     },
     duration: {
       type: Number,

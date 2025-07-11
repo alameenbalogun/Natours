@@ -15,6 +15,8 @@ exports.signup = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    changePasswordAt: req.body.changePasswordAt,
+    role: req.body.role,
   });
 
   const token = signToken(newUser._id);
@@ -66,7 +68,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   ) {
     token = req.headers.authorization.split(' ')[1];
   }
-  console.log(token);
+  // console.log(token);
 
   if (!token) {
     return next(
@@ -76,7 +78,50 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   //verify token
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  console.log(decoded);
+  // console.log(decoded);
+
+  //if user exits
+  const freshUser = await User.findById(decoded.id);
+  if (!freshUser) {
+    return next(
+      new AppError('The token belonging to this user does not exists', 401),
+    );
+  }
+
+  //if user changes password
+  if (freshUser.changePasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password. Please log in again!', 401),
+    );
+  }
+
+  req.user = freshUser;
 
   next();
 });
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      next(new AppError('You do not have permission to delete this tour', 403));
+    }
+
+    next();
+  };
+};
+
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  //find user.
+  const user = await User.findOne({ email: req.body.email });
+  console.log(user);
+
+  if (!user) {
+    return next(new AppError('No user found with this email.'));
+  }
+
+  //send a token
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+});
+
+exports.resetPassword = (req, res, next) => {};

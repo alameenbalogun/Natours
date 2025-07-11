@@ -8,7 +8,7 @@ const router = express.Router();
 // router
 //   .route('/cheap-5-tours')
 //   .get(tourController.cheapTours, tourController.getAllTours);
-router.route('/get-tour-stats').get(tourController.getTourStats);
+router.route('/:get-tour-stats').get(tourController.getTourStats);
 
 router
   .route('/')
@@ -18,6 +18,10 @@ router
   .route('/:id')
   .get(tourController.getTour)
   .patch(tourController.updateTour)
-  .delete(tourController.deleteTour);
+  .delete(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.deleteTour,
+  );
 
 module.exports = router;
